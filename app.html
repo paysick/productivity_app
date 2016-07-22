@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>App</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="./material.min.css">
+	<script src="./material.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<style type="text/css">
+		body{
+			background-color: #ddd;
+		}
+		.content{
+			margin: auto;
+			margin-top: 50px;
+		}
+		.content div{
+			padding: 15px;
+		}
+		table{
+			margin: 10px 0px;
+			width: 80%;
+		}
+		.clear_btn{
+			left: 40%;
+		}
+		.material-icons{
+			font-size: 18px;
+		}
+		.mdl-data-table__cell--non-numeric{
+			text-align: center;
+		}
+		.mdl-data-table th{
+			text-align: center;
+		}
+		.mdl-data-table td{
+			text-align: center;
+		}
+	</style>
+</head>
+<body>
+	<div class="content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
+	<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+	  <div class="mdl-tabs__tab-bar">
+	      <a href="#target-panel" class="mdl-tabs__tab is-active">Target</a>
+	      <a id="progress_link" href="#progress-panel" class="mdl-tabs__tab">Progress</a>
+	      <a href="#analysis-panel" class="mdl-tabs__tab">Analysis</a>
+	  </div>
+
+	  <div class="mdl-tabs__panel is-active" id="target-panel">
+		<!-- <ul id="resolution_list" class="demo-list-item mdl-list"></ul> -->
+		<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+		  <thead>
+		    <tr>
+		      <th class="mdl-data-table__cell--non-numeric">Resolutions</th>
+		      <th>Points</th>
+		      <th>remove</th>
+		    </tr>
+		  </thead>
+		  <tbody id="resolution_list">
+		  </tbody>
+		</table>
+		<form action="#" id="add_resolve">
+		  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+		    <input class="mdl-textfield__input" type="text" id="new_resolve">
+		    <label class="mdl-textfield__label" for="new_resolve">Resolution...</label>
+		  </div>
+		  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+		    <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="resolve_score">
+		    <label class="mdl-textfield__label" for="resolve_score">Value...</label>
+		    <span class="mdl-textfield__error">Input is not a number!</span>
+		  </div>
+		  <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+		    Add
+		  </button>
+		</form>	
+		<h2>Total Points <span id="total_points"></span></h2>
+	  </div>
+	  <div class="mdl-tabs__panel" id="progress-panel">
+	    <ul id="progress_list" class="mdl-list">
+	    </ul>
+	    <h2>Progress <span id="progress_percentage"></span>%</h2>
+	  </div>
+	  <div class="mdl-tabs__panel" id="analysis-panel">
+	    <ul>
+	      <li>Friday<div id="p1" class="mdl-progress mdl-js-progress"></div></li>
+	      <li>Thursday<div id="p2" class="mdl-progress mdl-js-progress"></div></li>
+	    </ul>
+	  </div>
+	</div>
+	</div>
+	<script type="text/javascript">
+		var resolutions = [];
+		
+		function Resolve(resolution, points){
+			this.resolution = resolution;
+			this.points = points;
+			this.check = false;
+		}
+
+		Resolve.prototype.toggle = function(){
+			if(this.check === true)this.check = false;
+			else this.check = true;
+		}
+	</script>
+		<script type="text/javascript">
+		var progress = 0;
+		var total_points = 0;
+		var save = function(){
+			var today = new Date();
+			var date = today.getDate();
+			var month = today.getMonth();
+			var year = today.getYear();
+			var josh_app_data = {};
+			josh_app_data[year]={};
+			josh_app_data[year][month]={};
+			josh_app_data[year][month][date]={};
+			josh_app_data[year][month][date]['score']=progress*100/total_points;
+			josh_app_data[year][month][date]['resolutions']=resolutions;
+			localStorage.setItem('josh_app_data', JSON.stringify(josh_app_data));
+			console.log('saved');
+		}
+		if(localStorage.getItem('josh_app_data') == undefined)save();
+	</script>
+	<script type="text/javascript">
+		var resolution_list = document.getElementById('resolution_list');
+		var new_resolve = document.getElementById('new_resolve');
+		var resolve_score = document.getElementById('resolve_score');
+		var add_resolve = document.getElementById('add_resolve');
+		var points_el = document.getElementById('total_points');
+		add_resolve.addEventListener('submit', function(e){
+			e.preventDefault();
+			if(new_resolve.value.trim() == "" || resolve_score.value == "" || typeof(parseInt(resolve_score.value)) != 'number')return;
+			this.submit();
+			var e = document.createElement('tr');
+			var e1 = document.createElement('td');
+			e1.className = 'mdl-data-table__cell--non-numeric';
+			e1.innerHTML = new_resolve.value;
+			componentHandler.upgradeElement(e1);
+			var e2 = document.createElement('td');
+			e2.innerHTML = resolve_score.value;
+			componentHandler.upgradeElement(e2);
+			var e3 = document.createElement('td');
+			e3.className = "mdl-data-table__cell--non-numeric";
+			var button = document.createElement('button');
+			button.className = "clear_btn mdl-button mdl-js-button mdl-button--icon"
+			var icon = document.createElement('i');
+			icon.className = "material-icons";
+			icon.innerHTML = 'clear';
+			button.appendChild(icon);
+			e3.appendChild(button);
+			button.addEventListener('click', function(e){
+				total_points -= resolutions.splice(this.parentElement.parentElement.rowIndex-1,1)[0].points;
+				save();
+				points_el.innerHTML = total_points;
+				this.parentElement.parentElement.remove();
+			});
+			componentHandler.upgradeElement(e3);
+			e.appendChild(e1);
+			e.appendChild(e2);
+			e.appendChild(e3);
+			componentHandler.upgradeElement(e);
+			document.getElementById('resolution_list').appendChild(e);
+
+			r = new Resolve(new_resolve.value, resolve_score.value);
+			resolutions.push(r);
+
+			total_points += parseInt(resolve_score.value);
+			points_el.innerHTML = total_points;
+			new_resolve.value = "";
+			resolve_score.value = "";
+			save();
+		});
+	</script>
+	<script type="text/javascript">
+		var progress_link = document.getElementById('progress_link');
+		var progress_panel = document.getElementById('progress-panel');
+		var progress_percentage = document.getElementById('progress_percentage');
+		progress_link.addEventListener('click', load_list);
+		function load_list(){
+			progress = 0;
+			var progress_list = document.getElementById('progress_list');
+			progress_list.remove();
+			progress_list = document.createElement('ul');
+			progress_list.className = "mdl-list";
+			progress_list.setAttribute('id','progress_list');
+			for(r in resolutions){
+				var list_item = document.createElement('li');
+				var span_item = document.createElement('span');
+				var span_check = document.createElement('span');
+				var label = document.createElement('label');
+				var checkbox = document.createElement('input');
+				list_item.className = "mdl-list__item";
+				span_item.className = "mdl-list__item-primary-content";
+				span_check.className = "mdl-list__item-secondary-action";
+				label.className = 'mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect'; 
+				label.setAttribute('for','item'+r);
+				label.setAttribute('data', r);
+				checkbox.setAttribute('type', 'checkbox');
+				checkbox.setAttribute('id', 'item'+r);
+				checkbox.className = "mdl-checkbox__input";
+				if(resolutions[r].check === true){
+					checkbox.setAttribute('checked','');
+					//label.className += " is-checked";
+					//componentHandler.upgradeElement(label);
+					progress += parseInt(resolutions[r].points);
+				}
+				span_item.innerHTML = resolutions[r].resolution;
+				label.appendChild(checkbox);
+				span_check.appendChild(label);
+				list_item.appendChild(span_item);
+				list_item.appendChild(span_check);
+				componentHandler.upgradeElement(checkbox);
+				componentHandler.upgradeElement(label);
+				componentHandler.upgradeElement(span_check);
+				componentHandler.upgradeElement(list_item);
+				progress_list.appendChild(list_item);
+				checkbox.addEventListener('click', function(){
+					var i = this.parentElement.getAttribute('data');
+					resolutions[i].toggle();
+					if(resolutions[i].check === false) progress = parseInt(progress) - parseInt(resolutions[i].points);
+					else progress = parseInt(progress) + parseInt(resolutions[i].points);
+					progress_percentage.innerHTML = Math.floor(parseInt(progress)*100/parseInt(total_points));
+					save();
+				});
+			}
+			progress_panel.insertBefore(progress_list, progress_panel.childNodes[0]);
+			// for(r in resolutions){
+			// 	resolutions[r].check = false;
+			// }
+			progress_percentage.innerHTML = Math.floor(parseInt(progress)*100/parseInt(total_points));
+		}
+	</script>
+	<script type="text/javascript">
+	function init(){
+		var today = new Date();
+		var date = today.getDate();
+		var month = today.getMonth();
+		var year = today.getYear();
+		total_points = 0;
+		saved_josh_app_data = JSON.parse(localStorage.getItem('josh_app_data'));
+		saved_resolutions = saved_josh_app_data[year][month][date]['resolutions'];
+		for(r in saved_resolutions){
+			var re_resolve = new Resolve(saved_resolutions[r].resolution, saved_resolutions[r].points);
+			re_resolve.check = saved_resolutions[r].check;
+			resolutions.push(re_resolve);
+			var e = document.createElement('tr');
+			var e1 = document.createElement('td');
+			e1.className = 'mdl-data-table__cell--non-numeric';
+			e1.innerHTML = resolutions[r].resolution;
+			componentHandler.upgradeElement(e1);
+			var e2 = document.createElement('td');
+			e2.innerHTML = resolutions[r].points;
+			componentHandler.upgradeElement(e2);
+			var e3 = document.createElement('td');
+			e3.className = "mdl-data-table__cell--non-numeric";
+			var button = document.createElement('button');
+			button.className = "clear_btn mdl-button mdl-js-button mdl-button--icon"
+			var icon = document.createElement('i');
+			icon.className = "material-icons";
+			icon.innerHTML = 'clear';
+			button.appendChild(icon);
+			e3.appendChild(button);
+			button.addEventListener('click', function(e){
+				total_points -= resolutions.splice(this.parentElement.parentElement.rowIndex-1,1)[0].points;
+				save();
+				points_el.innerHTML = total_points;
+				this.parentElement.parentElement.remove();
+			});
+			componentHandler.upgradeElement(e3);
+			e.appendChild(e1);
+			e.appendChild(e2);
+			e.appendChild(e3);
+			componentHandler.upgradeElement(e);
+			document.getElementById('resolution_list').appendChild(e);
+
+			total_points = parseInt(total_points) + parseInt(resolutions[r].points);
+		}
+		points_el.innerHTML = total_points;
+	}
+	init();
+	</script>
+	<script type="text/javascript">
+		document.querySelector('#p1').addEventListener('mdl-componentupgraded', function() {
+			this.MaterialProgress.setProgress(parseInt(progress)*100/parseInt(total_points));
+		});
+		document.querySelector('#p1').addEventListener('mdl-componentupgraded', function() {
+			this.MaterialProgress.setProgress(22);
+		});
+	</script>
+</body>
+</html>
